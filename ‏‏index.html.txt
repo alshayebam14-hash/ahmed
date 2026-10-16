@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grave RP - نظام الإدارة والعمليات</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0b0d11',
+                            800: '#12161f',
+                            700: '#1a202c',
+                            600: '#2d3748'
+                        },
+                        grave: {
+                            gold: '#d4af37',
+                            goldLight: '#f3e5ab'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0d11;
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(18, 22, 31, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-gold {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0d11;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d3748;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-50 space-y-2"></div>
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-900 bg-opacity-95 backdrop-blur-xl">
+        <div class="glass-panel p-8 rounded-3xl w-full max-w-md mx-4 border border-white/10 shadow-2xl space-y-6 relative">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-grave-gold to-yellow-700 flex items-center justify-center text-black font-black text-3xl shadow-xl glow-gold">
+                    G
+                </div>
+                <h1 class="font-extrabold text-2xl text-white tracking-wide">Grave RP</h1>
+                <p class="text-xs text-grave-gold font-semibold uppercase tracking-widest">نظام العمليات والإدارة السحابي</p>
+            </div>
+
+            <div class="space-y-4 pt-2">
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">اسم المستخدم</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="login-user" placeholder="أدخل اسم المستخدم..." class="w-full bg-dark-800 border border-dark-600 rounded-xl pr-4 pl-10 py-3 text-sm text-white focus:outline-none focus:border-grave-gold transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1.5">كلمة المرور</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-dark-800 border border-dark-600 rounded-xl pr-4 pl-10 py-3 text-sm text-white focus:outline-none focus:border-grave-gold transition">
+                    </div>
+                </div>
+
+                <button onclick="handleLogin()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-grave-gold to-yellow-600 text-black font-extrabold text-sm hover:from-grave-goldLight hover:to-grave-gold transition shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    تسجيل الدخول للنظام
+                </button>
+            </div>
+
+            <div class="text-center pt-2">
+                <p class="text-[11px] text-gray-500">حماية أمنية مشددة • مصرح للمسؤولين فقط</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD APP (Hidden by Default) -->
+    <div id="main-app" class="hidden flex-1 flex flex-col">
+        <!-- HEADER NAVBAR -->
+        <header class="glass-panel border-b border-white/10 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-grave-gold to-yellow-700 flex items-center justify-center text-black font-extrabold text-xl shadow-md glow-gold">
+                        G
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg text-white">Grave RP</h2>
+                        <span class="text-[10px] text-grave-gold block">لوحة القيادة الإدارية</span>
+                    </div>
+                </div>
+
+                <!-- NAVIGATION TABS -->
+                <nav class="hidden md:flex items-center gap-2 bg-dark-800/60 p-1.5 rounded-2xl border border-white/5">
+                    <button onclick="switchTab('personnel')" id="tab-personnel" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-grave-gold bg-dark-700">
+                        <i data-lucide="users" class="w-4 h-4"></i> المنسوبين
+                    </button>
+                    <button onclick="switchTab('promotions')" id="tab-promotions" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-gray-400 hover:text-white">
+                        <i data-lucide="award" class="w-4 h-4"></i> الترقيات والأكواد
+                    </button>
+                    <button onclick="switchTab('audit')" id="tab-audit" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-gray-400 hover:text-white">
+                        <i data-lucide="file-check-2" class="w-4 h-4"></i> الجرد والسجلات
+                    </button>
+                    <button onclick="switchTab('recruitment')" id="tab-recruitment" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-gray-400 hover:text-white">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> التجنيد
+                    </button>
+                    <button onclick="switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-gray-400 hover:text-white">
+                        <i data-lucide="shield-alert" class="w-4 h-4"></i> لوحة التحكم
+                    </button>
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-300 font-semibold bg-dark-800 px-3 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="current-user-name">Ahmed</span>
+                    </span>
+                    <button onclick="handleLogout()" class="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition" title="تسجيل الخروج">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTAINER -->
+        <main class="max-w-7xl mx-auto px-4 py-6 w-full flex-1">
+            
+            <!-- SECTION 1: PERSONNEL TABLE (الجدول الرئيسي) -->
+            <section id="sec-personnel" class="space-y-6">
+                <!-- Action Controls Bar -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-4 rounded-2xl">
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="relative flex-1 max-w-md">
+                            <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="search-input" onkeyup="filterPersonnelTable()" placeholder="بحث باسم، أيدي، كود، أو رتبة..." class="w-full bg-dark-800 border border-dark-600 rounded-xl pr-4 pl-10 py-2.5 text-xs text-white focus:outline-none focus:border-grave-gold">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openBulkModal()" class="px-4 py-2.5 rounded-xl bg-grave-gold/10 border border-grave-gold/30 text-grave-gold font-bold text-xs hover:bg-grave-gold hover:text-black transition flex items-center gap-2">
+                            <i data-lucide="file-plus-2" class="w-4 h-4"></i> إضافة منسوبين بالجملة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-white/5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-dark-800/80 text-grave-gold uppercase tracking-wider font-extrabold border-b border-white/5">
+                                <tr>
+                                    <th class="p-4">الرتبة</th>
+                                    <th class="p-4">كوبي الدسكورد</th>
+                                    <th class="p-4">الاسم</th>
+                                    <th class="p-4">رقم الهوية (ID)</th>
+                                    <th class="p-4">الكود</th>
+                                    <th class="p-4 text-center">السجلات</th>
+                                    <th class="p-4 text-center">الإعلانات</th>
+                                    <th class="p-4 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="personnel-table-body" class="divide-y divide-white/5 text-gray-300">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: PROMOTIONS AND CODES (الترقيات والأكواد) -->
+            <section id="sec-promotions" class="space-y-6 hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                        <div>
+                            <h3 class="font-extrabold text-lg text-white">قسم الترقيات المنسق تلقائياً</h3>
+                            <p class="text-xs text-gray-400">حساب استحقاق الترقية ومنح أول كود شاغر بناءً على نطاق الرتبة</p>
+                        </div>
+                        <button onclick="copyEligiblePromotions()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-grave-gold to-yellow-600 text-black font-extrabold text-xs shadow-md hover:from-grave-goldLight transition flex items-center gap-2">
+                            <i data-lucide="copy" class="w-4 h-4"></i> نسخ مستحقي الترقيات للديسكورد
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Promotion Cards Container -->
+                    <div id="promotion-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                        <!-- Promotion Cards Injected Here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: AUDIT & RECORDS (الجرد والسجلات) -->
+            <section id="sec-audit" class="space-y-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Sijillat Audit -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-sm text-grave-gold flex items-center gap-2">
+                            <i data-lucide="clipboard-list" class="w-4 h-4"></i> جرد السجلات والإعلانات
+                        </h3>
+                        <p class="text-xs text-gray-400">الصق التقرير المباشر أو الاختصار (مثال: <code class="text-grave-gold">25,2,4</code> أي أيدي 25، سجلين، 4 إعلانات)</p>
+                        <textarea id="audit-text-input" rows="8" placeholder="الصق تقرير المنسوبين هنا أو الصيغ المباشرة..." class="w-full bg-dark-800 border border-dark-600 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-grave-gold font-mono"></textarea>
+                        <button onclick="processAuditData()" class="w-full py-3 rounded-xl bg-grave-gold text-black font-extrabold text-xs hover:bg-grave-goldLight transition flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> تحديث الجدول بالقيم الجديدة
+                        </button>
+                    </div>
+
+                    <!-- Shift Duties Audit -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-sm text-grave-gold flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4"></i> جرد مسؤوليات الفترة والمناوبات
+                        </h3>
+                        <p class="text-xs text-gray-400">الصق نص المناوبة وسيقوم النظام بتجميع تكرار كل أيدي تلقائياً</p>
+                        <textarea id="shift-text-input" rows="8" placeholder="ضابط الفترة : Mohammad 25&#10;مسؤول مركز العمليات : Ahmed 773..." class="w-full bg-dark-800 border border-dark-600 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-grave-gold font-mono"></textarea>
+                        <button onclick="processShiftAudit()" class="w-full py-3 rounded-xl bg-grave-gold text-black font-extrabold text-xs hover:bg-grave-goldLight transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> حساب التكرار وتحديث الجدول
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: RECRUITMENT (التجنيد والقبول) -->
+            <section id="sec-recruitment" class="space-y-6 hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                        <div>
+                            <h3 class="font-bold text-base text-white">إدارة طلبات التجنيد (Google Forms Bridge)</h3>
+                            <p class="text-xs text-gray-400">كشف التكرار ونقل المقبولين بضغطة زر</p>
+                        </div>
+                    </div>
+                    <div class="p-8 text-center space-y-3 bg-dark-800/40 rounded-xl border border-dashed border-white/10">
+                        <i data-lucide="link" class="w-8 h-8 text-grave-gold mx-auto"></i>
+                        <p class="text-xs text-gray-300">نموذج التجنيد جاهز للربط عبر Google Sheets Bridge Script</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: ADMIN MASTER CONTROL PANEL -->
+            <section id="sec-admin" class="space-y-6 hidden">
+                <div class="glass-panel p-6 rounded-2xl space-y-6 border border-grave-gold/20">
+                    <div class="border-b border-white/10 pb-4">
+                        <h3 class="font-extrabold text-lg text-grave-gold flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i> لوحة تحكم المدير العام (Master Control)
+                        </h3>
+                        <p class="text-xs text-gray-400">إدارة حسابات المشرفين ومنح الصلاحيات</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-dark-800 p-4 rounded-xl border border-white/5 space-y-3">
+                            <h4 class="text-xs font-bold text-white">إضافة حساب مشرف جديد</h4>
+                            <input type="text" id="new-sub-user" placeholder="اسم المشرف..." class="w-full bg-dark-900 border border-dark-600 rounded-lg p-2 text-xs text-white">
+                            <input type="password" id="new-sub-pass" placeholder="كلمة المرور..." class="w-full bg-dark-900 border border-dark-600 rounded-lg p-2 text-xs text-white">
+                            <button onclick="addSubAdmin()" class="w-full py-2 bg-grave-gold text-black text-xs font-bold rounded-lg hover:bg-grave-goldLight">إضافة الحساب</button>
+                        </div>
+
+                        <div class="md:col-span-2 bg-dark-800 p-4 rounded-xl border border-white/5">
+                            <h4 class="text-xs font-bold text-white mb-3">الحسابات الحالية والصلاحيات</h4>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex items-center justify-between p-2.5 bg-dark-900 rounded-lg border border-grave-gold/30">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="crown" class="w-4 h-4 text-grave-gold"></i>
+                                        <span class="font-bold text-white">Ahmed (المدير العام)</span>
+                                    </div>
+                                    <span class="text-[10px] text-grave-gold bg-grave-gold/10 px-2 py-0.5 rounded">صلاحيات مطلقة</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- BULK IMPORT MODAL -->
+    <div id="bulk-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="glass-panel p-6 rounded-3xl w-full max-w-2xl mx-4 space-y-4 border border-grave-gold/30">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-grave-gold flex items-center gap-2">
+                    <i data-lucide="file-plus-2" class="w-4 h-4"></i> إضافة منسوبين بالجملة (تفكيك متراكم تلقائي)
+                </h3>
+                <button onclick="closeBulkModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <p class="text-xs text-gray-300">الصق النص العسكري المتراكم مهما كانت الكلمات متلاصقة وسيتم فرزها فوراً:</p>
+            <textarea id="bulk-text-input" rows="8" placeholder="مثال:&#10;وكيل رقيب🔱<@998808344548622427>M7MD105217R - 123وكيل رقيب🔱" class="w-full bg-dark-800 border border-dark-600 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-grave-gold font-mono"></textarea>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeBulkModal()" class="px-4 py-2 rounded-xl bg-dark-700 text-xs font-bold">إلغاء</button>
+                <button onclick="processBulkImport()" class="px-5 py-2 rounded-xl bg-grave-gold text-black text-xs font-extrabold hover:bg-grave-goldLight">تحليل وإضافة للجدول</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Sample Initial Data
+        let personnelData = [
+            { id: "105217", name: "M7MD", rank: "وكيل رقيب", discordTag: "<@998808344548622427>", code: "R-123", records: 0, announcements: 0 },
+            { id: "105249", name: "toki", rank: "جندي أول", discordTag: "<@887596372554055731>", code: "R-336", records: 0, announcements: 0 },
+            { id: "73241", name: "NoMercy", rank: "رئيس رقباء", discordTag: "<@742460801264386069>", code: "R-2", records: 0, announcements: 0 }
+        ];
+
+        // Code Ranges Mapping according to Military Ranks
+        const codeRanges = {
+            "جندي": { min: 300, max: 399, prefix: "R-" },
+            "جندي أول": { min: 100, max: 150, prefix: "R-" },
+            "عريف": { min: 151, max: 200, prefix: "R-" },
+            "وكيل رقيب": { min: 201, max: 250, prefix: "R-" }
+        };
+
+        let currentUser = null;
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Toast Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-3 rounded-xl text-xs font-bold flex items-center gap-2 text-white shadow-xl ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-4 h-4"></i> ${message}`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Login Handler (Ahmed / moda2010)
+        function handleLogin() {
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+
+            if (user === 'Ahmed' && pass === 'moda2010') {
+                currentUser = user;
+                document.getElementById('current-user-name').innerText = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                showToast('مرحباً بك يا القائد Ahmed! تم تسجيل الدخول بنجاح.');
+                renderPersonnelTable();
+            } else {
+                showToast('اسم المستخدم أو كلمة المرور غير صحيحة!', 'error');
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('login-pass').value = '';
+        }
+
+        // Navigation Switcher
+        function switchTab(tab) {
+            ['personnel', 'promotions', 'audit', 'recruitment', 'admin'].forEach(t => {
+                document.getElementById(`sec-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-${t}`);
+                if (btn) {
+                    btn.classList.remove('text-grave-gold', 'bg-dark-700');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+
+            document.getElementById(`sec-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.classList.add('text-grave-gold', 'bg-dark-700');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            if (tab === 'promotions') renderPromotions();
+        }
+
+        // Render Personnel Table
+        function renderPersonnelTable(data = personnelData) {
+            const tbody = document.getElementById('personnel-table-body');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition border-b border-white/5";
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-grave-gold">${item.rank}</td>
+                    <td class="p-4 font-mono text-gray-400">${item.discordTag}</td>
+                    <td class="p-4 font-bold text-white">${item.name}</td>
+                    <td class="p-4 font-mono text-grave-goldLight">${item.id}</td>
+                    <td class="p-4 font-bold text-emerald-400">${item.code}</td>
+                    <td class="p-4 text-center font-bold">${item.records}</td>
+                    <td class="p-4 text-center font-bold">${item.announcements}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deletePerson('${item.id}')" class="text-red-400 hover:text-red-300 p-1" title="حذف"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function filterPersonnelTable() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = personnelData.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.id.includes(query) || 
+                p.code.toLowerCase().includes(query) ||
+                p.rank.includes(query)
+            );
+            renderPersonnelTable(filtered);
+        }
+
+        // Bulk Import Parsing Algorithm
+        function openBulkModal() { document.getElementById('bulk-modal').classList.remove('hidden'); }
+        function closeBulkModal() { document.getElementById('bulk-modal').classList.add('hidden'); }
+
+        function processBulkImport() {
+            const text = document.getElementById('bulk-text-input').value.trim();
+            if (!text) return;
+
+            // Regex pattern to extract discord tags, IDs, Codes, and Names
+            const tagMatch = text.match(/<@\d+>/g) || [];
+            const idMatch = text.match(/\d{5,7}/g) || [];
+            const codeMatch = text.match(/R\s*-\s*\d+/gi) || [];
+
+            if (tagMatch.length > 0 && idMatch.length > 0) {
+                for (let i = 0; i < tagMatch.length; i++) {
+                    const discordTag = tagMatch[i] || "";
+                    const id = idMatch[i] || Math.floor(100000 + Math.random() * 900000).toString();
+                    const code = codeMatch[i] ? codeMatch[i].replace(/\s+/g, '') : "R-100";
+
+                    // Check if exists
+                    if (!personnelData.some(p => p.id === id)) {
+                        personnelData.push({
+                            id: id,
+                            name: `منسوب_${id}`,
+                            rank: "وكيل رقيب",
+                            discordTag: discordTag,
+                            code: code,
+                            records: 0,
+                            announcements: 0
+                        });
+                    }
+                }
+                renderPersonnelTable();
+                showToast('تم إدراج وتحليل المنسوبين الجدد بنجاح!');
+                closeBulkModal();
+            } else {
+                showToast('تعذر تحليل النص! تأكد من الصيغة.', 'error');
+            }
+        }
+
+        // Audit Processing (25,2,4 or Full Text)
+        function processAuditData() {
+            const text = document.getElementById('audit-text-input').value.trim();
+            if (!text) return;
+
+            const lines = text.split('\n');
+            let updatedCount = 0;
+
+            lines.forEach(line => {
+                // Short Format: 25,2,4
+                const shortMatch = line.match(/^(\d+),(\d+),(\d+)$/);
+                if (shortMatch) {
+                    const [, targetId, recs, anns] = shortMatch;
+                    const person = personnelData.find(p => p.id === targetId);
+                    if (person) {
+                        person.records += parseInt(recs);
+                        person.announcements += parseInt(anns);
+                        updatedCount++;
+                    }
+                }
+            });
+
+            if (updatedCount > 0) {
+                renderPersonnelTable();
+                showToast(`تم تحديث سجلات ${updatedCount} منسوب بنجاح!`);
+                document.getElementById('audit-text-input').value = '';
+            } else {
+                showToast('لم يتم العثور على أيديات مطابقة!', 'error');
+            }
+        }
+
+        // Shift Audit Processing
+        function processShiftAudit() {
+            const text = document.getElementById('shift-text-input').value.trim();
+            if (!text) return;
+
+            const ids = text.match(/\d{3,6}/g) || [];
+            let countMap = {};
+
+            ids.forEach(id => { countMap[id] = (countMap[id] || 0) + 1; });
+
+            Object.keys(countMap).forEach(targetId => {
+                const person = personnelData.find(p => p.id === targetId);
+                if (person) {
+                    person.records += countMap[targetId];
+                }
+            });
+
+            renderPersonnelTable();
+            showToast('تم احتساب تكرار الفترات وتحديث السجلات بنجاح!');
+            document.getElementById('shift-text-input').value = '';
+        }
+
+        // Promotions & Auto-Code Allocation
+        function renderPromotions() {
+            const container = document.getElementById('promotion-cards-container');
+            container.innerHTML = '';
+
+            personnelData.forEach(person => {
+                const card = document.createElement('div');
+                card.className = "bg-dark-800 p-4 rounded-xl border border-white/5 space-y-2";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-white text-xs">${person.name} (${person.id})</span>
+                        <span class="text-[10px] text-grave-gold bg-grave-gold/10 px-2 py-0.5 rounded">${person.rank}</span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 font-mono">${person.discordTag}</p>
+                    <div class="flex items-center justify-between pt-2 border-t border-white/5 text-[11px]">
+                        <span class="text-gray-400">السجلات: <strong class="text-white">${person.records}</strong></span>
+                        <span class="text-emerald-400 font-bold">مستحق ترقية</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copyEligiblePromotions() {
+            let copyText = "مستحقي الترقيات:\n\n";
+            personnelData.forEach(p => {
+                copyText += `${p.discordTag}\nGR💂🏻‍♀️${p.code} ${p.name} ${p.id}\n---\n`;
+            });
+
+            navigator.clipboard.writeText(copyText);
+            showToast('تم نسخ لستة المستحقين حافظة الجهاز!');
+        }
+
+        function deletePerson(id) {
+            personnelData = personnelData.filter(p => p.id !== id);
+            renderPersonnelTable();
+            showToast('تم حذف المنسوب من الجدول.');
+        }
+
+        function addSubAdmin() {
+            const user = document.getElementById('new-sub-user').value.trim();
+            if (user) {
+                showToast(`تم إضافة حساب المشرف (${user}) بنجاح!`);
+                document.getElementById('new-sub-user').value = '';
+                document.getElementById('new-sub-pass').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
